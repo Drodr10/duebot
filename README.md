@@ -20,7 +20,7 @@ Lost? `git checkout main`.
 1. **New Application** → name it → Create.
 2. Left sidebar → **Bot** → **Reset Token** → copy it into `.env` as `DISCORD_TOKEN`. It is shown once.
    Leave all three *Privileged Gateway Intents* OFF — this bot doesn't need them.
-3. Left sidebar → **OAuth2** → **URL Generator**: tick scopes `bot` and `applications.commands`;
+3. Left sidebar → **OAuth2** → scroll to **OAuth2 URL Generator**: tick scopes `bot` and `applications.commands`;
    under Bot Permissions tick `Send Messages`, `Embed Links`, `Read Message History`.
    Copy the generated URL, open it, pick the workshop server, Authorize.
 
