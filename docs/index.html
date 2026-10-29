@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DueBot Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EAF1F5;--surface:#FFFFFF;--ink:#14263F;--ink-soft:#4A6079;--line:#C3D6E1;--accent:#E29500;--accent-ink:#3A2600;--accent-text:#9A5E00;--code-bg:#0B1E33;--code-ink:#E3F0FA;--radius:7px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1E33;--surface:#102A45;--ink:#E3F0FA;--ink-soft:#93B4CB;--line:#254969;--accent:#F2B705;--accent-ink:#241900;--accent-text:#F2B705;--code-bg:#071523;--code-ink:#E3F0FA}}
+:root[data-theme="dark"]{--bg:#0B1E33;--surface:#102A45;--ink:#E3F0FA;--ink-soft:#93B4CB;--line:#254969;--accent:#F2B705;--accent-ink:#241900;--accent-text:#F2B705;--code-bg:#071523;--code-ink:#E3F0FA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;line-height:1.55;font-size:16px}
+main{max-width:820px;margin:0 auto;padding:32px 16px 96px}
+header{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:28px}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text)}
+h1{font-size:34px;margin:4px 0 8px;line-height:1.1}
+h1 small{display:block;font-size:17px;font-weight:400;color:var(--ink-soft);margin-top:6px}
+h2{font-size:22px;margin:40px 0 12px;display:flex;align-items:baseline;gap:12px}
+h2 .n{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent-ink);background:var(--accent);padding:2px 8px;border-radius:4px}
+h3{font-size:16px;margin:20px 0 6px}
+p{margin:8px 0}
+a{color:var(--accent-text)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:12px 0}
+.concept{border-left:4px solid var(--accent);background:var(--surface);padding:10px 14px;margin:14px 0;border-radius:0 var(--radius) var(--radius) 0}
+.concept b{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);display:block;margin-bottom:2px}
+ol.steps{padding-left:22px}ol.steps li{margin:6px 0}
+ul.check{list-style:none;padding:0;margin:8px 0}
+ul.check li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line)}
+ul.check li:last-child{border-bottom:0}
+ul.check input{margin-top:5px;accent-color:var(--accent);width:16px;height:16px}
+ul.check li.done label{color:var(--ink-soft);text-decoration:line-through}
+code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:var(--surface);border:1px solid var(--line);padding:1px 5px;border-radius:4px}
+pre{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:var(--radius);overflow-x:auto;font-size:13px;line-height:1.5;margin:10px 0}
+pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit}
+pre .copy{position:absolute;top:8px;right:8px;font:500 11px 'IBM Plex Mono',monospace;background:var(--accent);color:var(--accent-ink);border:0;border-radius:4px;padding:4px 8px;cursor:pointer}
+details{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);margin:10px 0}
+summary{cursor:pointer;padding:10px 14px;font-weight:600;color:var(--accent-text)}
+details[open] summary{border-bottom:1px solid var(--line)}
+details .body{padding:4px 14px 12px}
+.hint{color:var(--ink-soft);font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.warn{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 14px;margin:12px 0}
+.warn::before{content:"⚠ ";color:var(--accent-text)}
+kbd{font-family:'IBM Plex Mono',monospace;font-size:.85em;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+footer{margin-top:56px;color:var(--ink-soft);font-size:13px;border-top:1px solid var(--line);padding-top:14px;font-family:'IBM Plex Mono',monospace}
+@media (max-width:520px){h1{font-size:28px}h2{font-size:19px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="kicker">SEC Workshop · Build a Discord bot</div>
+  <h1>DueBot <small>A Discord bot that knows when your Canvas work is due — and keeps running after you close your laptop.</small></h1>
+  <p class="hint">Follow this top to bottom. Each step has a <b>Show me the code</b> toggle. Try it first, peek second. Repo: <code>git checkout start</code> to build, <code>git checkout main</code> for the finished version.</p>
+</header>
+
+<h2><span class="n">00</span> Before we start</h2>
+<p>Tick these off. Takes about 10 minutes. Everything here happens in a browser.</p>
+<ul class="check" id="setup">
+  <li><input type="checkbox" id="c1"><label for="c1"><b>Developer Mode on.</b> Discord → User Settings → Advanced → Developer Mode. This adds <i>Copy User ID</i> and <i>Copy Server ID</i> to right-click menus.</label></li>
+  <li><input type="checkbox" id="c2"><label for="c2"><b>Join the workshop server</b> with the invite on the screen.</label></li>
+  <li><input type="checkbox" id="c3"><label for="c3"><b>Make your bot.</b> <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">discord.com/developers/applications</a> → <i>New Application</i> → name it → <i>Create</i>.</label></li>
+  <li><input type="checkbox" id="c4"><label for="c4"><b>Get the token.</b> Left sidebar → <i>Bot</i> → <i>Reset Token</i> → copy. It is shown <b>once</b>. Leave all three <i>Privileged Gateway Intents</i> off; we don't need them.</label></li>
+  <li><input type="checkbox" id="c5"><label for="c5"><b>Invite it.</b> Left sidebar → <i>OAuth2</i> → <i>URL Generator</i>. Scopes: <code>bot</code> + <code>applications.commands</code>. Bot permissions: <i>Send Messages</i>, <i>Embed Links</i>, <i>Read Message History</i>. Copy the URL at the bottom, open it, pick the workshop server, Authorize.</label></li>
+  <li><input type="checkbox" id="c6"><label for="c6"><b>Canvas feed URL.</b> Canvas → Calendar → <i>Calendar Feed</i> (bottom of the right sidebar) → copy the URL. <b>Treat it like a password.</b></label></li>
+  <li><input type="checkbox" id="c7"><label for="c7"><b>Two IDs.</b> Right-click yourself → <i>Copy User ID</i>. Right-click the server icon → <i>Copy Server ID</i>.</label></li>
+  <li><input type="checkbox" id="c8"><label for="c8"><b>Open the code.</b> On the repo page: green <i>Code</i> button → <i>Codespaces</i> → <i>Create codespace on start</i>. Wait for the terminal. (Local Python works too, see the README.)</label></li>
+  <li><input type="checkbox" id="c9"><label for="c9"><b>Fill in <code>.env</code>.</b> Codespaces made it for you from <code>.env.example</code>. Paste token, feed URL, your user ID as <code>OWNER_ID</code>, the server ID as <code>GUILD_ID</code>. Optional: a friend's user ID as <code>WATCH_USER_ID</code>.</label></li>
+</ul>
+<div class="warn">Never paste your token or your feed URL into Discord, a commit, or a screenshot. <code>.env</code> is gitignored for exactly this reason.</div>
+
+<h2><span class="n">01</span> Bring it online</h2>
+<pre><button class="copy">copy</button><code>python bot.py</code></pre>
+<p>You should see <code>Logged in as YourBot#1234</code>. In Discord, type <kbd>/ping</kbd>. If the command doesn't show up, press <kbd>Ctrl</kbd>+<kbd>R</kbd> (<kbd>Cmd</kbd>+<kbd>R</kbd> on Mac) to reload Discord.</p>
+<div class="concept"><b>What just happened · WebSockets</b>
+Your code opened <b>one</b> long-lived connection to Discord, called the Gateway. It's a WebSocket: unlike a normal HTTP request, it stays open, and Discord <b>pushes</b> events down it. Your bot never asks "anything new?". Set <code>SHOW_GATEWAY=1</code> in <code>.env</code> and restart to watch the heartbeats that keep that connection alive.</div>
+<div class="concept"><b>Intents</b>
+When the bot connects it tells Discord which kinds of events it wants. We use the defaults: server info and voice state. We do <b>not</b> ask for message content, which is why there was no scary toggle in the portal. Slash commands arrive as their own event type.</div>
+
+<h2><span class="n">02</span> Step 1 — know when a friend joins voice</h2>
+<p>Discord sends an <code>on_voice_state_update</code> event every time <i>anyone</i> joins, leaves, mutes or moves. Write a handler that DMs you when one specific person goes from no channel to a channel. Find the <code>STEP 1</code> comment in <code>bot.py</code>.</p>
+<p class="hint">Hints: <code>before.channel is None and after.channel is not None</code> means "just joined". <code>await bot.fetch_user(OWNER_ID)</code> gets you; <code>await owner.send("...")</code> DMs you.</p>
+<details><summary>Show me the code</summary><div class="body">
+<pre><button class="copy">copy</button><code>@bot.event
+async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -&gt; None:
+    """Discord tells us every time ANYONE's voice state changes. We care about one person joining."""
+    joined = before.channel is None and after.channel is not None
+    if WATCH_USER_ID and member.id == WATCH_USER_ID and joined:
+        owner = await bot.fetch_user(OWNER_ID)
+        await owner.send(f"👀 **{member.display_name}** just joined **{after.channel.name}** in {member.guild.name}")</code></pre>
+</div></details>
+<p>Restart the bot. Have your watched person hop into the <b>General</b> voice channel. Check your DMs.</p>
+<div class="concept"><b>Event-driven architecture</b>
+You didn't write a loop that checks the voice channel every second. You registered <i>interest</i> in an event, and the system calls you when it happens. That's the whole idea, and it's the same shape as message queues, webhooks and UI click handlers.</div>
+
+<h2><span class="n">03</span> Step 2 — <code>/due</code></h2>
+<p>Add a slash command <code>due</code> with an optional <code>days</code> argument (default 7). It should reply with <code>await get_digest(CANVAS_FEED_URL, days)</code>, which already fetches and formats your Canvas feed (look in <code>canvas.py</code>). Find the <code>STEP 2</code> comment.</p>
+<div class="warn">Discord gives you <b>3 seconds</b> to answer a slash command. Downloading the Canvas feed can take longer. So: <code>await interaction.response.defer(ephemeral=True)</code> first, then <code>await interaction.followup.send(text, ephemeral=True)</code>.</div>
+<details><summary>Show me the code</summary><div class="body">
+<pre><button class="copy">copy</button><code>@bot.tree.command(name="due", description="What's due on Canvas soon?")
+@app_commands.describe(days="How many days ahead to look (default 7)")
+async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1, 60] = 7) -&gt; None:
+    await interaction.response.defer(ephemeral=True)
+    try:
+        text = await get_digest(CANVAS_FEED_URL, days)
+    except Exception as e:  # bad URL, Canvas down, etc.
+        log.exception("Canvas fetch failed")
+        text = f"Couldn't read your Canvas feed: `{type(e).__name__}: {e}`"
+    await interaction.followup.send(f"📚 **Due in the next {days} days**\n{text}", ephemeral=True)</code></pre>
+</div></details>
+<p>Restart, then <kbd>/due</kbd>. Try <kbd>/due days:30</kbd>. <code>ephemeral=True</code> means only you see the reply, so your deadlines aren't broadcast to the channel.</p>
+<div class="concept"><b>Calling an external API</b>
+<code>canvas.py</code> does a plain HTTPS GET to Canvas and parses the <code>.ics</code> file it gets back. No SDK, no token: the feed URL <i>is</i> the credential. Discord's REST API, which discord.py wraps for <code>followup.send</code>, is the same idea with more ceremony. Rate limits apply to both, which is what an <b>API gateway</b> enforces in front of any serious service.</div>
+
+<h2><span class="n">04</span> Step 3 — the morning digest</h2>
+<p>Three pieces, all at the <code>STEP 3</code> comment: a <code>send_digest()</code> function that DMs you, a <code>@tasks.loop</code> that runs it at <code>DIGEST_HOUR</code> every day, and a <code>/digest</code> command that runs it right now so you don't have to wait until morning. Then start the loop in <code>on_ready</code> at <code>STEP 3b</code>.</p>
+<details><summary>Show me the code</summary><div class="body">
+<pre><button class="copy">copy</button><code>@bot.tree.command(name="digest", description="Send me the morning digest right now")
+async def digest_now(interaction: discord.Interaction) -&gt; None:
+    await interaction.response.defer(ephemeral=True)
+    await send_digest()
+    await interaction.followup.send("Sent — check your DMs.", ephemeral=True)
+
+
+@tasks.loop(time=time(hour=DIGEST_HOUR, minute=0, tzinfo=TZ))
+async def morning_digest() -&gt; None:
+    """Runs every day at DIGEST_HOUR. Only works if the bot is still running — hence deploying it."""
+    await send_digest()
+
+
+@morning_digest.before_loop
+async def _wait() -&gt; None:
+    await bot.wait_until_ready()
+
+
+async def send_digest(days: int = 7) -&gt; None:
+    owner = await bot.fetch_user(OWNER_ID)
+    text = await get_digest(CANVAS_FEED_URL, days)
+    await owner.send(f"☀️ **Good morning. Due in the next {days} days:**\n{text}")</code></pre>
+<p>And in <code>on_ready</code>, replace the <code>STEP 3b</code> comment with:</p>
+<pre><button class="copy">copy</button><code>    if not morning_digest.is_running():
+        morning_digest.start()</code></pre>
+</div></details>
+<p>Restart, <kbd>/digest</kbd>, check your DMs. Tomorrow at 8 you'd get the same message. <i>If</i> the bot is still running.</p>
+
+<h2><span class="n">05</span> Keep it running — containers</h2>
+<p>Right now your bot dies when the Codespace sleeps or your laptop lid closes. A container packages your code, the exact Python, and the exact packages into one image that runs the same anywhere. The <code>Dockerfile</code> is already in the repo. Read it; it's nine lines.</p>
+<pre><button class="copy">copy</button><code>docker build -t duebot .
+docker run --env-file .env duebot</code></pre>
+<p class="hint">Secrets are passed in at run time with <code>--env-file</code>, never baked into the image.</p>
+<div class="concept"><b>Containerized deployment</b>
+Every host that runs Docker images (Railway, Fly, Render, Oracle Cloud, a Raspberry Pi) takes this same image. Push the repo, set the four environment variables in their dashboard, done. Free always-on hosting in 2026 is thin: Railway's one-time trial credit gets you live tonight, and Oracle Cloud's Always Free tier or your <a href="https://education.github.com/pack" target="_blank" rel="noopener">GitHub Student Pack</a> credits are the long-term answers.</div>
+
+<h2><span class="n">06</span> Watch: the other direction</h2>
+<p>Your bot <i>opened</i> a connection to Discord. A <b>webhook</b> is the mirror image: another service opens a connection to a URL <i>you</i> host. <code>webhook_demo.py</code> is a 60-line server that receives GitHub events (push, pull request) and relays them into a Discord channel. It needs a public URL, which on a laptop means a tunnel like ngrok. Watch the projector for this one, then try it at home with the steps at the top of the file.</p>
+
+<h2><span class="n">07</span> When it breaks</h2>
+<table>
+<tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+<tr><td>Slash command not in the list</td><td>Commands synced globally take up to an hour</td><td>Set <code>GUILD_ID</code> in <code>.env</code> (instant), restart, reload Discord with <kbd>Ctrl</kbd>+<kbd>R</kbd></td></tr>
+<tr><td><code>Improper token has been passed</code></td><td>Token copied wrong, or reset after copying</td><td>Portal → Bot → Reset Token again, paste carefully, no quotes</td></tr>
+<tr><td><code>KeyError: 'DISCORD_TOKEN'</code></td><td><code>.env</code> missing or not filled in</td><td><code>cp .env.example .env</code>, fill it in, run from the repo folder</td></tr>
+<tr><td>Bot online but DM never arrives</td><td>Bots can only DM people who share a server and allow DMs from members</td><td>Server → Privacy Settings → allow direct messages</td></tr>
+<tr><td><code>/due</code> says it couldn't read the feed</td><td>Feed URL wrong or truncated</td><td>Test it alone: <code>python canvas.py "&lt;url&gt;" 14</code></td></tr>
+<tr><td>Due times look off by hours</td><td>Canvas stores UTC; we convert to Gainesville time</td><td>That's expected; check <code>TZ</code> in <code>canvas.py</code> if you're elsewhere</td></tr>
+</table>
+
+<h2><span class="n">08</span> Take it home</h2>
+<p>Generate a new invite URL in the portal and add the bot to your own server. Then look at what else Discord will tell you about: <code>on_member_join</code>, <code>on_reaction_add</code>, <code>on_message</code> (needs the message-content intent), <code>on_presence_update</code>. Every one of those is a bot idea. Someone in this room once built a "Discord Plays" bot that turned chat messages into keyboard presses.</p>
+
+<footer>DueBot · SEC Software Engineering Club · built with discord.py 2.7 · <code>python -m unittest discover tests</code> runs the tests</footer>
+</main>
+<script>
+(function(){
+  // Remember ticked boxes per browser. Purely a convenience; works without storage.
+  var key='duebot-setup';
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+  document.querySelectorAll('#setup input').forEach(function(cb){
+    if(saved[cb.id]){cb.checked=true;cb.parentElement.classList.add('done')}
+    cb.addEventListener('change',function(){
+      cb.parentElement.classList.toggle('done',cb.checked);
+      saved[cb.id]=cb.checked;
+      try{localStorage.setItem(key,JSON.stringify(saved))}catch(e){}
+    });
+  });
+  document.querySelectorAll('pre .copy').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var code=btn.parentElement.querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(function(){btn.textContent='copied';setTimeout(function(){btn.textContent='copy'},1200)});
+    });
+  });
+})();
+</script>
+</body>
+</html>
