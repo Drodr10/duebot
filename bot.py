@@ -83,19 +83,24 @@ async def ping(interaction: discord.Interaction) -> None:
 @bot.tree.command(name="due", description="What's due on Canvas soon?")
 @app_commands.describe(days="How many days ahead to look (default 7)")
 async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1, 60] = 7) -> None:
+    # The server is shared; your Canvas data is not. Only answer the owner.
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("Not your bot — build your own! 🙂", ephemeral=True)
     # Discord gives you 3 seconds to answer an interaction. Fetching Canvas can
     # take longer, so we `defer` (shows "thinking...") and follow up afterwards.
     await interaction.response.defer(ephemeral=True)
     try:
         text = await get_digest(CANVAS_FEED_URL, days)
     except Exception as e:  # bad URL, Canvas down, etc.
-        log.exception("Canvas fetch failed")
-        text = f"Couldn't read your Canvas feed: `{type(e).__name__}: {e}`"
+        log.exception("Canvas fetch failed")   # full detail stays in YOUR terminal...
+        text = f"Couldn't read your Canvas feed ({type(e).__name__}). Check the terminal."  # ...never in chat: errors can echo the URL
     await interaction.followup.send(f"📚 **Due in the next {days} days**\n{text}", ephemeral=True)
 
 
 @bot.tree.command(name="digest", description="Send me the morning digest right now")
 async def digest_now(interaction: discord.Interaction) -> None:
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("Not your bot — build your own! 🙂", ephemeral=True)
     await interaction.response.defer(ephemeral=True)
     await send_digest()
     await interaction.followup.send("Sent — check your DMs.", ephemeral=True)
