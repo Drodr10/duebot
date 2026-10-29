@@ -49,7 +49,8 @@ log = logging.getLogger("duebot")
 # guilds + voice state. We do NOT need Message Content (a privileged intent)
 # because we use slash commands, not "!commands" parsed out of chat.
 intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=intents)
+# when_mentioned: we have no "!commands", and it stops discord.py warning about the missing intent.
+bot = commands.Bot(command_prefix=commands.when_mentioned, intents=intents)
 
 
 # ---------------------------------------------------------------- events ----
