@@ -29,7 +29,8 @@ class Deadline:
     course: str         # "COP4020"  (Canvas puts it in [brackets] at the end of SUMMARY)
     due: datetime       # timezone-aware, converted to TZ
     url: str            # link straight to the assignment
-    all_day: bool       # calendar events without a time (DTSTART;VALUE=DATE:...)
+    all_day: bool       # entries without a time (DTSTART;VALUE=DATE:...)
+    kind: str           # "assignment" (something you hand in) or "event" (a lecture, office hours, Zoom)
 
 
 async def fetch_feed(url: str) -> bytes:
@@ -56,6 +57,9 @@ def parse_feed(data: bytes) -> list[Deadline]:
         m = _COURSE_RE.match(summary)
         title, course = (m["title"], m["course"]) if m else (summary, "")
 
+        # Canvas tags the type in the UID: event-assignment-123 vs event-calendar-event-456.
+        kind = "assignment" if str(ev.get("UID", "")).startswith("event-assignment") else "event"
+
         dt = start.dt
         if isinstance(dt, datetime):
             # Canvas sends UTC ("...Z"). Make it local.
@@ -66,15 +70,16 @@ def parse_feed(data: bytes) -> list[Deadline]:
             # Date-only entries have no time, so treat them as "end of that day".
             due, all_day = datetime.combine(dt, time(23, 59), tzinfo=TZ), True
 
-        items.append(Deadline(title, course, due, str(ev.get("URL", "")), all_day))
+        items.append(Deadline(title, course, due, str(ev.get("URL", "")), all_day, kind))
     return items
 
 
-def upcoming(items: list[Deadline], days: int = 7, now: datetime | None = None) -> list[Deadline]:
-    """Everything due from now until `days` from now, soonest first."""
+def upcoming(items: list[Deadline], days: int = 7, now: datetime | None = None, kind: str = "assignment") -> list[Deadline]:
+    """Things due from now until `days` from now, soonest first. Assignments only by default:
+    lectures are on the calendar too, and nobody wants "9:35 AM — COP4533" in a deadlines list."""
     now = now or datetime.now(TZ)
     horizon = now + timedelta(days=days)
-    return sorted((d for d in items if now <= d.due <= horizon), key=lambda d: d.due)
+    return sorted((d for d in items if now <= d.due <= horizon and (kind is None or d.kind == kind)), key=lambda d: d.due)
 
 
 def format_digest(items: list[Deadline], days: int = 7, now: datetime | None = None) -> str:
