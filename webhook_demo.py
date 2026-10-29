@@ -59,7 +59,8 @@ async def github(request: web.Request) -> web.Response:
     event = request.headers.get("X-GitHub-Event", "unknown")
     text = describe(event, await request.json())
     async with aiohttp.ClientSession() as s:
-        await s.post(DISCORD_WEBHOOK_URL, json={"content": text})
+        # allowed_mentions: a PR titled "@everyone lol" must not ping the whole server.
+        await s.post(DISCORD_WEBHOOK_URL, json={"content": text, "allowed_mentions": {"parse": []}})
     return web.Response(text="ok")
 
 
