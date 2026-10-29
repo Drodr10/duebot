@@ -40,6 +40,7 @@ Locally:
 python3 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env                                   # fill it in
+python check.py                                        # tells you which .env value is wrong, if any
 python bot.py
 ```
 
@@ -61,7 +62,7 @@ python canvas.py "https://ufl.instructure.com/feeds/calendars/user_....ics" 14
 | `morning_digest` loop + `/digest` | ~10 lines | **scheduled work**, and why the bot must stay running |
 | `docker build` / `docker run` | 0 lines | **containers**: same image on your laptop and on a server |
 
-Gotchas you will hit, in order of likelihood:
+Gotchas you will hit, in order of likelihood (`python check.py` catches the first two):
 
 - **Slash command doesn't appear.** Commands synced *globally* take up to an hour. Set `GUILD_ID` so
   they sync to the workshop server instantly. Also try Ctrl+R / Cmd+R in Discord.
