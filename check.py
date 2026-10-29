@@ -20,9 +20,11 @@ OK, BAD = "  ok   ", "  FAIL "
 problems = 0
 
 
-def report(good: bool, label: str, detail: str = "") -> None:
+def report(good: bool, label: str, fix: str = "", info: str = "") -> None:
+    """Print one line. `fix` shows only when the check fails, `info` only when it passes."""
     global problems
     problems += 0 if good else 1
+    detail = info if good else fix
     print((OK if good else BAD), label, ("— " + detail) if detail else "")
 
 
@@ -42,15 +44,19 @@ async def main() -> None:
     owner = os.getenv("OWNER_ID", "")
     guild = os.getenv("GUILD_ID", "")
 
-    report(bool(token), "DISCORD_TOKEN set")
+    report(bool(token), "DISCORD_TOKEN set", "Developer Portal → your app → Bot → Reset Token, paste it after DISCORD_TOKEN=")
     if token:
         report(len(token.split(".")) == 3 and " " not in token and '"' not in token,
                "DISCORD_TOKEN looks like a token", "expect three dot-separated parts, no quotes or spaces")
     report(is_snowflake(owner), "OWNER_ID is a Discord id", "17–20 digits; right-click yourself → Copy User ID")
     report(is_snowflake(guild) or guild == "", "GUILD_ID is a Discord id or blank",
            "blank means global command sync (slow); set it for the workshop server")
-    report(feed.startswith("https://") and feed.endswith(".ics"), "CANVAS_FEED_URL is a feed URL",
-           "should start with https:// and end with .ics (the whole link, not just the user_ part)")
+    if "XXXX" in feed:
+        report(False, "CANVAS_FEED_URL filled in", "still the example link; copy yours from Canvas → Calendar → Calendar Feed")
+        feed = ""
+    else:
+        report(feed.startswith("https://") and feed.endswith(".ics"), "CANVAS_FEED_URL is a feed URL",
+               "should start with https:// and end with .ics (the whole link, not just the user_ part)")
 
     # 2. The token actually works (REST call, no Gateway connection)
     if token:
@@ -61,7 +67,7 @@ async def main() -> None:
                                  timeout=aiohttp.ClientTimeout(total=10)) as r:
                     if r.status == 200:
                         me = await r.json()
-                        report(True, "Discord accepts the token", f"logged in as {me.get('username')}")
+                        report(True, "Discord accepts the token", info=f"logged in as {me.get('username')}")
                     else:
                         report(False, "Discord accepts the token", f"HTTP {r.status} — reset the token in the portal and paste it again")
         except Exception as e:
@@ -73,6 +79,7 @@ async def main() -> None:
             items = parse_feed(await fetch_feed(feed))
             soon = upcoming(items, days=14)
             report(len(items) > 0, "Canvas feed downloads and parses",
+                   "the feed is empty; check you copied the right link",
                    f"{len(items)} entries, {len(soon)} assignments due in the next 14 days")
         except Exception as e:
             report(False, "Canvas feed downloads", f"{type(e).__name__} — copy the link again from Canvas → Calendar → Calendar Feed")

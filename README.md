@@ -34,7 +34,9 @@ copy the URL into `.env` as `CANVAS_FEED_URL`. It's a secret: anyone with it can
 Easiest: open this repo in a **GitHub Codespace** (green Code button → Codespaces → Create). Python and
 the packages are preinstalled and `.env` is created for you to fill in.
 
-Locally:
+Locally, you need **Python 3.10 or newer**. Check with `python3 --version`. A Mac's built-in `python3` is 3.9
+and `pip install` fails with *No matching distribution found for icalendar*. Install 3.12 from
+[python.org](https://www.python.org/downloads/) or use a Codespace.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
@@ -70,6 +72,8 @@ Gotchas you will hit, in order of likelihood (`python check.py` catches the firs
 - **Bot replies to itself forever.** Not possible here (slash commands only), but it's the classic
   first bug for `on_message` bots: always check `message.author == bot.user`.
 - **DM never arrives.** The bot can only DM people who share a server with it and allow DMs from server members.
+- **"PyNaCl is not installed, voice will NOT be supported."** Harmless. That's for playing audio. Seeing
+  who joins a voice channel needs no extra packages.
 
 ## 3. Keep it running (deploy)
 
