@@ -45,9 +45,8 @@
   ul.check { list-style: none; margin: 0 0 10px; padding: 0; }
   ul.check li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); }
   ul.check li:last-child { border-bottom: 1px solid var(--line); }
-  /* Own checkbox: the native one follows the OS theme, not the page's. */
-  ul.check input { appearance: none; -webkit-appearance: none; flex: none; width: 15px; height: 15px; margin: 4px 0 0; border: 1.5px solid var(--fg); background: var(--bg); position: relative; cursor: pointer; }
-  ul.check input:checked::after { content: ""; position: absolute; left: 4px; top: 0px; width: 4px; height: 8px; border: solid var(--bright); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  /* Native checkbox. It follows the page's color-scheme (set per theme above), not the OS. */
+  ul.check input { margin: 5px 0 0; accent-color: var(--bright); flex: none; }
   ul.check label { min-width: 0; }
   ul.check li.done label { color: var(--muted); }
 
