@@ -24,20 +24,30 @@ class CanvasFeedTests(unittest.TestCase):
         # 03:59:59Z on Oct 30 is 11:59 PM Oct 29 in Gainesville (EDT)
         self.assertEqual((proj.due.month, proj.due.day, proj.due.hour, proj.due.minute), (10, 29, 23, 59))
 
-    def test_all_day_event(self):
+    def test_all_day_calendar_event(self):
         ev = next(d for d in parse_feed(DATA) if d.title == "Drop/Add Deadline")
         self.assertTrue(ev.all_day)
         self.assertEqual(ev.course, "")
+        self.assertEqual(ev.kind, "event")
+
+    def test_kind_from_uid(self):
+        kinds = {d.title: d.kind for d in parse_feed(DATA)}
+        self.assertEqual(kinds["Quiz 3: Parsing and Syntax"], "assignment")
+        self.assertEqual(kinds["Drop/Add Deadline"], "event")
+
+    def test_upcoming_can_include_events(self):
+        titles = [d.title for d in upcoming(parse_feed(DATA), days=7, now=NOW, kind=None)]
+        self.assertIn("Drop/Add Deadline", titles)
 
     def test_upcoming_filters_past_and_far_future(self):
         titles = [d.title for d in upcoming(parse_feed(DATA), days=7, now=NOW)]
-        self.assertEqual(titles, ["Project 2: Hash Tables", "Quiz 3: Parsing and Syntax", "Drop/Add Deadline"])
+        self.assertEqual(titles, ["Project 2: Hash Tables", "Quiz 3: Parsing and Syntax"])  # lecture-type events excluded
 
     def test_digest_text(self):
         text = format_digest(upcoming(parse_feed(DATA), 7, NOW), 7, NOW)
         self.assertIn("**Tomorrow**", text)
         self.assertIn("`COP3530` [Project 2: Hash Tables]", text)
-        self.assertIn("all day", text)
+        self.assertNotIn("Drop/Add", text)
         self.assertNotIn("Homework 4", text)
 
     def test_empty(self):
