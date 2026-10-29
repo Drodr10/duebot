@@ -25,6 +25,7 @@ TZ = ZoneInfo("America/New_York")  # Gainesville
 
 @dataclass
 class Deadline:
+    uid: str            # Canvas's stable id for this entry, e.g. "event-assignment-7251195"
     title: str          # "Quiz 3: Parsing and Syntax"
     course: str         # "COP4020"  (Canvas puts it in [brackets] at the end of SUMMARY)
     due: datetime       # timezone-aware, converted to TZ
@@ -58,7 +59,8 @@ def parse_feed(data: bytes) -> list[Deadline]:
         title, course = (m["title"], m["course"]) if m else (summary, "")
 
         # Canvas tags the type in the UID: event-assignment-123 vs event-calendar-event-456.
-        kind = "assignment" if str(ev.get("UID", "")).startswith("event-assignment") else "event"
+        uid = str(ev.get("UID", ""))
+        kind = "assignment" if uid.startswith("event-assignment") else "event"
 
         dt = start.dt
         if isinstance(dt, datetime):
@@ -70,7 +72,7 @@ def parse_feed(data: bytes) -> list[Deadline]:
             # Date-only entries have no time, so treat them as "end of that day".
             due, all_day = datetime.combine(dt, time(23, 59), tzinfo=TZ), True
 
-        items.append(Deadline(title, course, due, str(ev.get("URL", "")), all_day, kind))
+        items.append(Deadline(uid, title, course, due, str(ev.get("URL", "")), all_day, kind))
     return items
 
 
