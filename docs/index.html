@@ -94,6 +94,9 @@
 <p><b>Careful.</b> Never paste your token or your feed URL into Discord, a commit, or a screenshot. <code>.env</code> is gitignored for exactly this reason.</p>
 
 <h2>1. Bring it online</h2>
+<p>First, the preflight. It checks each value in <code>.env</code>, asks Discord whether the token is real, and downloads your Canvas feed, and it tells you exactly which one is wrong.</p>
+<pre><button class="copy">copy</button><code>python check.py</code></pre>
+<p>When it says all good:</p>
 <pre><button class="copy">copy</button><code>python bot.py</code></pre>
 <p>You should see <code>Logged in as YourBot#1234</code>. In Discord, type <kbd>/ping</kbd>. If the command doesn't show up, press <kbd>Ctrl</kbd>+<kbd>R</kbd> (<kbd>Cmd</kbd>+<kbd>R</kbd> on Mac) to reload Discord.</p>
 <p><b>What just happened.</b> Your code opened <b>one</b> long-lived connection to Discord, called the Gateway. It's a WebSocket: unlike a normal HTTP request, it stays open, and Discord <b>pushes</b> events down it. Your bot never asks "anything new?". Set <code>SHOW_GATEWAY=1</code> in <code>.env</code> and restart to watch the heartbeats that keep that connection alive.</p>
@@ -184,6 +187,7 @@ docker run --env-file .env duebot</code></pre>
 <p>Your bot <i>opened</i> a connection to Discord. A <b>webhook</b> is the mirror image: another service opens a connection to a URL <i>you</i> host. <code>webhook_demo.py</code> is a 60-line server that receives GitHub events (push, pull request) and relays them into a Discord channel. It needs a public URL, which on a laptop means a tunnel like ngrok. Watch the projector for this one, then try it at home with the steps at the top of the file.</p>
 
 <h2>7. When it breaks</h2>
+<p>Before anything else: <code>python check.py</code>. Most of this table is what it checks for you.</p>
 <div class="tablewrap"><table>
 <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
 <tr><td>Slash command not in the list</td><td>Commands synced globally take up to an hour</td><td>Set <code>GUILD_ID</code> in <code>.env</code> (instant), restart, reload Discord with <kbd>Ctrl</kbd>+<kbd>R</kbd></td></tr>
