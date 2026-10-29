@@ -85,7 +85,11 @@ async def ping(interaction: discord.Interaction) -> None:
 # Discord gives you 3 seconds to answer. Fetching Canvas can take longer, so:
 #   await interaction.response.defer(ephemeral=True)   ... then ...
 #   await interaction.followup.send(text, ephemeral=True)
-# Wrap the fetch in try/except so a bad URL gives a message, not a crash.
+# Wrap the fetch in try/except so a bad URL gives a message, not a crash — but
+# keep str(e) OUT of the reply (errors can echo your feed URL); log it instead.
+# The server is shared, your Canvas isn't: first line of the command should be
+#   if interaction.user.id != OWNER_ID:
+#       return await interaction.response.send_message("Not your bot", ephemeral=True)
 
 
 # ------------------------------------------------------- scheduled task ----
@@ -94,6 +98,7 @@ async def ping(interaction: discord.Interaction) -> None:
 #   @tasks.loop(time=time(hour=DIGEST_HOUR, minute=0, tzinfo=TZ))
 # task that calls it, with a `.before_loop` that awaits bot.wait_until_ready().
 # Add a /digest command that calls send_digest() right now, so you don't have to wait until morning.
+# Same owner check as /due — otherwise anyone can make your bot spam your DMs.
 
 
 if __name__ == "__main__":
