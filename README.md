@@ -12,7 +12,7 @@ Lost? `git checkout main`.
 
 ## 0. What you need (5 minutes, do this first)
 
-**A Discord account with Developer Mode on.** User Settings → Advanced → Developer Mode. This adds
+**A Discord account with Developer Mode on.** User Settings → search "developer" → Developer → Developer Mode. This adds
 "Copy User ID" / "Copy Server ID" to right-click menus; you'll need both IDs.
 
 **A bot application.** https://discord.com/developers/applications
