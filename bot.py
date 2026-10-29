@@ -10,6 +10,8 @@ How a Discord bot works, in one paragraph:
   reply) you call Discord's REST API, which discord.py wraps for you.
 
 Run it:   python bot.py          (reads .env — see .env.example)
+
+Today we fill in the three STEP blocks below, top to bottom.
 """
 
 import logging
@@ -61,17 +63,14 @@ async def on_ready() -> None:
     else:
         await bot.tree.sync()
 
-    if not morning_digest.is_running():
-        morning_digest.start()
+    # STEP 3b: start the morning_digest loop here (guard with .is_running()).
 
 
-@bot.event
-async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -> None:
-    """Discord tells us every time ANYONE's voice state changes. We care about one person joining."""
-    joined = before.channel is None and after.channel is not None
-    if WATCH_USER_ID and member.id == WATCH_USER_ID and joined:
-        owner = await bot.fetch_user(OWNER_ID)
-        await owner.send(f"👀 **{member.display_name}** just joined **{after.channel.name}** in {member.guild.name}")
+# STEP 1 — the event-driven part.
+# Discord sends `on_voice_state_update(member, before, after)` every time anyone's
+# voice state changes. Write a handler that DMs OWNER_ID when WATCH_USER_ID goes
+# from no channel (before.channel is None) to a channel (after.channel is not None).
+# Hints: bot.fetch_user(OWNER_ID)  →  owner.send("...")   member.display_name, after.channel.name
 
 
 # ------------------------------------------------------------- commands ----
@@ -80,43 +79,21 @@ async def ping(interaction: discord.Interaction) -> None:
     await interaction.response.send_message(f"pong — {round(bot.latency * 1000)} ms to the Gateway", ephemeral=True)
 
 
-@bot.tree.command(name="due", description="What's due on Canvas soon?")
-@app_commands.describe(days="How many days ahead to look (default 7)")
-async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1, 60] = 7) -> None:
-    # Discord gives you 3 seconds to answer an interaction. Fetching Canvas can
-    # take longer, so we `defer` (shows "thinking...") and follow up afterwards.
-    await interaction.response.defer(ephemeral=True)
-    try:
-        text = await get_digest(CANVAS_FEED_URL, days)
-    except Exception as e:  # bad URL, Canvas down, etc.
-        log.exception("Canvas fetch failed")
-        text = f"Couldn't read your Canvas feed: `{type(e).__name__}: {e}`"
-    await interaction.followup.send(f"📚 **Due in the next {days} days**\n{text}", ephemeral=True)
-
-
-@bot.tree.command(name="digest", description="Send me the morning digest right now")
-async def digest_now(interaction: discord.Interaction) -> None:
-    await interaction.response.defer(ephemeral=True)
-    await send_digest()
-    await interaction.followup.send("Sent — check your DMs.", ephemeral=True)
+# STEP 2 — call an external API.
+# Add a /due command with an optional `days` argument (default 7) that replies with
+# `await get_digest(CANVAS_FEED_URL, days)`.
+# Discord gives you 3 seconds to answer. Fetching Canvas can take longer, so:
+#   await interaction.response.defer(ephemeral=True)   ... then ...
+#   await interaction.followup.send(text, ephemeral=True)
+# Wrap the fetch in try/except so a bad URL gives a message, not a crash.
 
 
 # ------------------------------------------------------- scheduled task ----
-@tasks.loop(time=time(hour=DIGEST_HOUR, minute=0, tzinfo=TZ))
-async def morning_digest() -> None:
-    """Runs every day at DIGEST_HOUR. This only works if the bot is still running — hence deploying it."""
-    await send_digest()
-
-
-@morning_digest.before_loop
-async def _wait() -> None:
-    await bot.wait_until_ready()
-
-
-async def send_digest(days: int = 7) -> None:
-    owner = await bot.fetch_user(OWNER_ID)
-    text = await get_digest(CANVAS_FEED_URL, days)
-    await owner.send(f"☀️ **Good morning. Due in the next {days} days:**\n{text}")
+# STEP 3 — scheduled work.
+# Write `send_digest()` (fetch_user(OWNER_ID) → owner.send(digest)), then a
+#   @tasks.loop(time=time(hour=DIGEST_HOUR, minute=0, tzinfo=TZ))
+# task that calls it, with a `.before_loop` that awaits bot.wait_until_ready().
+# Add a /digest command that calls send_digest() right now, so you don't have to wait until morning.
 
 
 if __name__ == "__main__":
