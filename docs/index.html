@@ -7,18 +7,20 @@
 <style>
   /* Plain page. The only color on it is whatever Discord shows in your other window. */
   :root {
-    color-scheme: light dark;
+    color-scheme: light;
     --bg: #ffffff; --surface: #f4f4f4; --line: #d9d9d9;
     --fg: #222222; --bright: #000000; --muted: #6b6b6b;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   :root[data-theme="dark"] {
+    color-scheme: dark;
     --bg: #121212; --surface: #1a1a1a; --line: #2e2e2e;
     --fg: #d6d6d6; --bright: #f2f2f2; --muted: #8a8a8a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #121212; --surface: #1a1a1a; --line: #2e2e2e;
       --fg: #d6d6d6; --bright: #f2f2f2; --muted: #8a8a8a;
     }
@@ -32,7 +34,7 @@
   kbd { font-family: var(--mono); font-size: 0.9em; color: var(--bright); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
 
   header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 28px; }
-  header p { margin: 2px 0 0; color: var(--muted); max-width: 62ch; }
+  header p { margin: 10px 0 0; color: var(--muted); max-width: 62ch; }
   h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--bright); }
   h2 { margin: 36px 0 8px; font-size: 17px; font-weight: 600; color: var(--bright); }
   p { margin: 0 0 10px; max-width: 70ch; }
@@ -43,7 +45,9 @@
   ul.check { list-style: none; margin: 0 0 10px; padding: 0; }
   ul.check li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); }
   ul.check li:last-child { border-bottom: 1px solid var(--line); }
-  ul.check input { margin: 5px 0 0; accent-color: var(--bright); flex: none; }
+  /* Own checkbox: the native one follows the OS theme, not the page's. */
+  ul.check input { appearance: none; -webkit-appearance: none; flex: none; width: 15px; height: 15px; margin: 4px 0 0; border: 1.5px solid var(--fg); background: var(--bg); position: relative; cursor: pointer; }
+  ul.check input:checked::after { content: ""; position: absolute; left: 4px; top: 0px; width: 4px; height: 8px; border: solid var(--bright); border-width: 0 2px 2px 0; transform: rotate(45deg); }
   ul.check label { min-width: 0; }
   ul.check li.done label { color: var(--muted); }
 
