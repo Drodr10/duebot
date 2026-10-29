@@ -24,10 +24,12 @@ p{margin:8px 0}
 a{color:var(--accent-text)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:12px 0}
 .concept{border-left:4px solid var(--accent);background:var(--surface);padding:10px 14px;margin:14px 0;border-radius:0 var(--radius) var(--radius) 0}
-.concept b{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);display:block;margin-bottom:2px}
+.concept>b:first-child{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);display:block;margin-bottom:2px}
 ol.steps{padding-left:22px}ol.steps li{margin:6px 0}
 ul.check{list-style:none;padding:0;margin:8px 0}
 ul.check li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line)}
+ul.check label{min-width:0}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 ul.check li:last-child{border-bottom:0}
 ul.check input{margin-top:5px;accent-color:var(--accent);width:16px;height:16px}
 ul.check li.done label{color:var(--ink-soft);text-decoration:line-through}
@@ -99,17 +101,21 @@ You didn't write a loop that checks the voice channel every second. You register
 
 <h2><span class="n">03</span> Step 2 — <code>/due</code></h2>
 <p>Add a slash command <code>due</code> with an optional <code>days</code> argument (default 7). It should reply with <code>await get_digest(CANVAS_FEED_URL, days)</code>, which already fetches and formats your Canvas feed (look in <code>canvas.py</code>). Find the <code>STEP 2</code> comment.</p>
+<div class="warn">Twenty bots share this server, and every one of them has a <code>/due</code>. Anyone could run <i>yours</i>. First line of the command: <code>if interaction.user.id != OWNER_ID: return ...</code>. And never put <code>str(e)</code> in the reply: a connection error can echo the feed URL. Log it, reply with the error's name only.</div>
 <div class="warn">Discord gives you <b>3 seconds</b> to answer a slash command. Downloading the Canvas feed can take longer. So: <code>await interaction.response.defer(ephemeral=True)</code> first, then <code>await interaction.followup.send(text, ephemeral=True)</code>.</div>
 <details><summary>Show me the code</summary><div class="body">
 <pre><button class="copy">copy</button><code>@bot.tree.command(name="due", description="What's due on Canvas soon?")
 @app_commands.describe(days="How many days ahead to look (default 7)")
 async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1, 60] = 7) -&gt; None:
+    # The server is shared; your Canvas data is not. Only answer the owner.
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("Not your bot — build your own! 🙂", ephemeral=True)
     await interaction.response.defer(ephemeral=True)
     try:
         text = await get_digest(CANVAS_FEED_URL, days)
     except Exception as e:  # bad URL, Canvas down, etc.
-        log.exception("Canvas fetch failed")
-        text = f"Couldn't read your Canvas feed: `{type(e).__name__}: {e}`"
+        log.exception("Canvas fetch failed")   # full detail stays in YOUR terminal...
+        text = f"Couldn't read your Canvas feed ({type(e).__name__}). Check the terminal."  # ...never in chat
     await interaction.followup.send(f"📚 **Due in the next {days} days**\n{text}", ephemeral=True)</code></pre>
 </div></details>
 <p>Restart, then <kbd>/due</kbd>. Try <kbd>/due days:30</kbd>. <code>ephemeral=True</code> means only you see the reply, so your deadlines aren't broadcast to the channel.</p>
@@ -121,6 +127,8 @@ async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1,
 <details><summary>Show me the code</summary><div class="body">
 <pre><button class="copy">copy</button><code>@bot.tree.command(name="digest", description="Send me the morning digest right now")
 async def digest_now(interaction: discord.Interaction) -&gt; None:
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("Not your bot — build your own! 🙂", ephemeral=True)
     await interaction.response.defer(ephemeral=True)
     await send_digest()
     await interaction.followup.send("Sent — check your DMs.", ephemeral=True)
@@ -159,7 +167,7 @@ Every host that runs Docker images (Railway, Fly, Render, Oracle Cloud, a Raspbe
 <p>Your bot <i>opened</i> a connection to Discord. A <b>webhook</b> is the mirror image: another service opens a connection to a URL <i>you</i> host. <code>webhook_demo.py</code> is a 60-line server that receives GitHub events (push, pull request) and relays them into a Discord channel. It needs a public URL, which on a laptop means a tunnel like ngrok. Watch the projector for this one, then try it at home with the steps at the top of the file.</p>
 
 <h2><span class="n">07</span> When it breaks</h2>
-<table>
+<div class="tablewrap"><table>
 <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
 <tr><td>Slash command not in the list</td><td>Commands synced globally take up to an hour</td><td>Set <code>GUILD_ID</code> in <code>.env</code> (instant), restart, reload Discord with <kbd>Ctrl</kbd>+<kbd>R</kbd></td></tr>
 <tr><td><code>Improper token has been passed</code></td><td>Token copied wrong, or reset after copying</td><td>Portal → Bot → Reset Token again, paste carefully, no quotes</td></tr>
@@ -167,7 +175,7 @@ Every host that runs Docker images (Railway, Fly, Render, Oracle Cloud, a Raspbe
 <tr><td>Bot online but DM never arrives</td><td>Bots can only DM people who share a server and allow DMs from members</td><td>Server → Privacy Settings → allow direct messages</td></tr>
 <tr><td><code>/due</code> says it couldn't read the feed</td><td>Feed URL wrong or truncated</td><td>Test it alone: <code>python canvas.py "&lt;url&gt;" 14</code></td></tr>
 <tr><td>Due times look off by hours</td><td>Canvas stores UTC; we convert to Gainesville time</td><td>That's expected; check <code>TZ</code> in <code>canvas.py</code> if you're elsewhere</td></tr>
-</table>
+</table></div>
 
 <h2><span class="n">08</span> Take it home</h2>
 <p>Generate a new invite URL in the portal and add the bot to your own server. Then look at what else Discord will tell you about: <code>on_member_join</code>, <code>on_reaction_add</code>, <code>on_message</code> (needs the message-content intent), <code>on_presence_update</code>. Every one of those is a bot idea. Someone in this room once built a "Discord Plays" bot that turned chat messages into keyboard presses.</p>
@@ -176,6 +184,7 @@ Every host that runs Docker images (Railway, Fly, Render, Oracle Cloud, a Raspbe
 </main>
 <script>
 (function(){
+  var t=(location.hash.match(/light|dark/)||[])[0]; if(t){document.documentElement.setAttribute('data-theme',t)}
   // Remember ticked boxes per browser. Purely a convenience; works without storage.
   var key='duebot-setup';
   var saved={};
