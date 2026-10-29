@@ -14,14 +14,16 @@ Run it:   python bot.py          (reads .env — see .env.example)
 
 import logging
 import os
-from datetime import time
+from datetime import datetime, time
+from pathlib import Path
 
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
-from canvas import TZ, get_digest
+from canvas import TZ, fetch_feed, get_digest, parse_feed
+from reminders import describe, due_reminders, key, load_sent, parse_leads, save_sent
 
 # ---------------------------------------------------------------- config ----
 load_dotenv()                                               # .env -> os.environ
@@ -38,6 +40,8 @@ OWNER_ID = int(os.environ["OWNER_ID"])                      # who gets the DMs (
 GUILD_ID = env_int("GUILD_ID")                              # workshop server: instant command sync
 WATCH_USER_ID = env_int("WATCH_USER_ID")                    # friend to watch in voice (optional)
 DIGEST_HOUR = env_int("DIGEST_HOUR", 8)                     # morning DM, local time
+REMIND_HOURS = parse_leads(os.getenv("REMIND_HOURS", ""))   # e.g. "24,1": DM 24h and 1h before each deadline
+STATE_FILE = Path(os.getenv("STATE_FILE", "state/sent.json"))  # which reminders already went out
 
 # Logging. Set SHOW_GATEWAY=1 to watch the WebSocket heartbeats scroll by.
 discord.utils.setup_logging(level=logging.INFO)
@@ -71,6 +75,8 @@ async def on_ready() -> None:
 
     if not morning_digest.is_running():
         morning_digest.start()
+    if REMIND_HOURS and not reminders.is_running():
+        reminders.start()
 
 
 @bot.event
@@ -123,6 +129,28 @@ async def morning_digest() -> None:
 
 @morning_digest.before_loop
 async def _wait() -> None:
+    await bot.wait_until_ready()
+
+
+# STRETCH — reminders before each deadline. See reminders.py for the logic and
+# why the sent-list is a file: without it, every restart re-sends everything.
+@tasks.loop(minutes=15)
+async def reminders() -> None:
+    items = parse_feed(await fetch_feed(CANVAS_FEED_URL))
+    sent = load_sent(STATE_FILE)
+    fire = due_reminders(items, REMIND_HOURS, datetime.now(TZ), sent)
+    if not fire:
+        return
+    owner = await bot.fetch_user(OWNER_ID)
+    for d, lead in fire:
+        await owner.send(describe(d, lead))
+        sent.add(key(d, lead))
+    save_sent(STATE_FILE, sent, items)
+    log.info("Sent %d reminder(s)", len(fire))
+
+
+@reminders.before_loop
+async def _wait_reminders() -> None:
     await bot.wait_until_ready()
 
 
