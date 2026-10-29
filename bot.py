@@ -27,12 +27,19 @@ from canvas import TZ, get_digest
 
 # ---------------------------------------------------------------- config ----
 load_dotenv()                                               # .env -> os.environ
+
+
+def env_int(name: str, default: int = 0) -> int:
+    """An optional number from .env. A blank line like `GUILD_ID=` counts as unset."""
+    return int(os.getenv(name) or default)
+
+
 TOKEN = os.environ["DISCORD_TOKEN"]                         # required
 CANVAS_FEED_URL = os.environ["CANVAS_FEED_URL"]             # required
 OWNER_ID = int(os.environ["OWNER_ID"])                      # who gets the DMs (you)
-GUILD_ID = int(os.getenv("GUILD_ID", "0"))                  # workshop server: instant command sync
-WATCH_USER_ID = int(os.getenv("WATCH_USER_ID", "0"))        # friend to watch in voice (optional)
-DIGEST_HOUR = int(os.getenv("DIGEST_HOUR", "8"))            # morning DM, local time
+GUILD_ID = env_int("GUILD_ID")                              # workshop server: instant command sync
+WATCH_USER_ID = env_int("WATCH_USER_ID")                    # friend to watch in voice (optional)
+DIGEST_HOUR = env_int("DIGEST_HOUR", 8)                     # morning DM, local time
 
 # Logging. Set SHOW_GATEWAY=1 to watch the WebSocket heartbeats scroll by.
 discord.utils.setup_logging(level=logging.INFO)
