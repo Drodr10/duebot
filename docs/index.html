@@ -169,11 +169,15 @@ async def send_digest(days: int = 7) -&gt; None:
 </div></details>
 <p>Restart, <kbd>/digest</kbd>, check your DMs. Tomorrow at 8 you'd get the same message. <i>If</i> the bot is still running.</p>
 
+<h2>Optional: remind me before it's due</h2>
+<p>Finished early, or doing this at home? The finished bot on <code>main</code> has one more feature: set <code>REMIND_HOURS=24,1</code> in <code>.env</code> and it DMs you a day before and an hour before each deadline. Read <code>reminders.py</code>; it's short. The part worth your attention is the sent-list it saves to <code>state/sent.json</code>. Delete that file and restart, and you'll see why it exists.</p>
+<p class="muted">Loop every 15 minutes, check which deadlines just entered a window, DM, remember. That's the whole thing. The remembering is the engineering.</p>
+
 <h2>5. Keep it running</h2>
 <p>Right now your bot dies when the Codespace sleeps or your laptop lid closes. A container packages your code, the exact Python, and the exact packages into one image that runs the same anywhere. The <code>Dockerfile</code> is already in the repo. Read it; it's nine lines.</p>
 <pre><button class="copy">copy</button><code>docker build -t duebot .
 docker run --env-file .env duebot</code></pre>
-<p class="muted">Secrets are passed in at run time with <code>--env-file</code>, never baked into the image.</p>
+<p class="muted">Secrets are passed in at run time with <code>--env-file</code>, never baked into the image. If you turned on reminders, add <code>-v duebot-state:/app/state</code> so the sent-list outlives the container.</p>
 <p><b>Deploying it.</b> Every host that runs Docker images (Railway, Fly, Render, Oracle Cloud, a Raspberry Pi) takes this same image. Push the repo, set the four environment variables in their dashboard, done. Free always-on hosting in 2026 is thin: Railway's one-time trial credit gets you live tonight, and Oracle Cloud's Always Free tier or your <a href="https://education.github.com/pack" target="_blank" rel="noopener">GitHub Student Pack</a> credits are the long-term answers.</p>
 
 <h2>6. Watch: the other direction</h2>

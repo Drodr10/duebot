@@ -3,7 +3,7 @@
 Built live at the SEC workshop. You leave with a bot that:
 
 - replies to `/due` with everything due on Canvas in the next N days
-- DMs you a digest every morning
+- DMs you a digest every morning, and (optionally) 24 hours and 1 hour before each deadline
 - DMs you when a specific friend joins a voice channel
 - runs in a container so it keeps working after you close your laptop
 
@@ -83,7 +83,21 @@ trial credit (no card) which is enough to see it live tonight, and **Oracle Clou
 **GitHub Student Developer Pack** credits (DigitalOcean, Azure, Heroku) are the real long-term answers.
 Any of them takes the Dockerfile as-is: push the repo, set the four env vars in their dashboard, done.
 
-## 4. Bonus: the other direction — webhooks
+## 4. Stretch: reminders before each deadline
+
+Set `REMIND_HOURS=24,1` in `.env` and the bot DMs you 24 hours and again 1 hour before every
+assignment. The logic is in `reminders.py` and is about twenty lines. The interesting part is
+**not sending the same reminder twice**: the bot remembers what it sent in `state/sent.json`, and
+that file must survive restarts. In Docker that means a volume:
+
+```bash
+docker run --env-file .env -v duebot-state:/app/state duebot
+```
+
+Without the volume every container restart re-sends every reminder in the window. Try it once
+on purpose; it's the clearest "state needs a home" lesson you'll get.
+
+## 5. Bonus: the other direction — webhooks
 
 `webhook_demo.py` is a 60-line server that receives **GitHub** webhooks (push, PR) and relays them to a
 Discord channel. It's the mirror image of the bot: the bot *opens* a connection to Discord; a webhook is

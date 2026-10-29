@@ -30,6 +30,10 @@ class CanvasFeedTests(unittest.TestCase):
         self.assertEqual(ev.course, "")
         self.assertEqual(ev.kind, "event")
 
+    def test_uid_kept(self):
+        quiz = next(d for d in parse_feed(DATA) if d.title.startswith("Quiz 3"))
+        self.assertEqual(quiz.uid, "event-assignment-1002")
+
     def test_kind_from_uid(self):
         kinds = {d.title: d.kind for d in parse_feed(DATA)}
         self.assertEqual(kinds["Quiz 3: Parsing and Syntax"], "assignment")
