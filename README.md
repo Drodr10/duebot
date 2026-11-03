@@ -27,7 +27,7 @@ Lost? `git checkout main`.
 **Your Canvas calendar feed.** Canvas → Calendar → **Calendar Feed** (bottom of the right sidebar) →
 copy the URL into `.env` as `CANVAS_FEED_URL`. It's a secret: anyone with it can read your calendar.
 
-**IDs.** Right-click yourself → Copy User ID → `OWNER_ID`. Right-click the server icon → Copy Server ID → `GUILD_ID`.
+**IDs.** Right-click yourself → Copy User ID → `OWNER_ID`. Right-click the server icon → Copy Server Info → Copy Server ID → `GUILD_ID`.
 
 ## 1. Run it
 
