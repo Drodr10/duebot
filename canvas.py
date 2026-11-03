@@ -97,25 +97,54 @@ def clip(text: str, limit: int = LIMIT) -> str:
     return kept + "\n…and more"
 
 
-def format_digest(items: list[Deadline], days: int = 7, now: datetime | None = None) -> str:
-    """Markdown for Discord: grouped by day, one line per deadline."""
-    now = now or datetime.now(TZ)
-    if not items:
-        return f"Nothing due in the next {days} days. Go outside."
-
+def _by_day(items: list[Deadline], now: datetime) -> str:
+    """One bold heading per day, one line per deadline under it."""
     lines: list[str] = []
     current: date | None = None
     for d in items:
         day = d.due.date()
         if day != current:
             current = day
-            label = {0: "Today", 1: "Tomorrow"}.get((day - now.date()).days, d.due.strftime("%A %b %-d"))
+            label = {-1: "Yesterday", 0: "Today", 1: "Tomorrow"}.get((day - now.date()).days, d.due.strftime("%A %b %-d"))
             lines.append(f"\n**{label}**")
         when = "all day" if d.all_day else d.due.strftime("%-I:%M %p")
         course = f"`{d.course}` " if d.course else ""
         title = f"[{d.title}]({d.url})" if d.url else d.title
         lines.append(f"• {when} — {course}{title}")
-    return clip("\n".join(lines).strip())
+    return "\n".join(lines).strip()
+
+
+def format_digest(items: list[Deadline], days: int = 7, now: datetime | None = None) -> str:
+    """Markdown for Discord: grouped by day, one line per deadline."""
+    now = now or datetime.now(TZ)
+    if not items:
+        return f"Nothing due in the next {days} days. Go outside."
+    return clip(_by_day(items, now))
+
+
+def week_window(offset: int = 0, now: datetime | None = None) -> tuple[datetime, datetime]:
+    """Monday 00:00 to the next Monday 00:00 of this week, shifted by `offset` weeks."""
+    now = now or datetime.now(TZ)
+    monday = datetime.combine(now.date() - timedelta(days=now.weekday()), datetime.min.time(), tzinfo=TZ)
+    start = monday + timedelta(weeks=offset)
+    return start, start + timedelta(weeks=1)
+
+
+def in_window(items: list[Deadline], start: datetime, end: datetime, kind: str = "assignment") -> list[Deadline]:
+    """Like upcoming(), but for any window, past ones included."""
+    return sorted((d for d in items if start <= d.due < end and (kind is None or d.kind == kind)), key=lambda d: d.due)
+
+
+def format_week(items: list[Deadline], offset: int = 0, now: datetime | None = None) -> str:
+    """One calendar week (Mon–Sun) of assignments, with a heading that says which week."""
+    now = now or datetime.now(TZ)
+    start, end = week_window(offset, now)
+    last = end - timedelta(days=1)
+    span = f"{start:%b %-d} – {last:%b %-d}"
+    name = {0: "This week", 1: "Next week", -1: "Last week"}.get(offset, f"Week of {start:%b %-d}")
+    week = in_window(items, start, end)
+    body = _by_day(week, now) if week else "Nothing due this week."
+    return clip(f"📅 **{name}** ({span})\n{body}")
 
 
 async def get_digest(url: str, days: int = 7) -> str:

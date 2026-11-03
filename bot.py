@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 
 from canvas import TZ, fetch_feed, get_digest, parse_feed
 from reminders import describe, due_reminders, key, load_sent, parse_leads, save_sent
+from week import WeekView
 
 # ---------------------------------------------------------------- config ----
 load_dotenv()                                               # .env -> os.environ
@@ -109,6 +110,21 @@ async def due(interaction: discord.Interaction, days: app_commands.Range[int, 1,
         log.exception("Canvas fetch failed")   # full detail stays in YOUR terminal...
         text = f"Couldn't read your Canvas feed ({type(e).__name__}). Check the terminal."  # ...never in chat: errors can echo the URL
     await interaction.followup.send(f"📚 **Due in the next {days} days**\n{text}", ephemeral=True)
+
+
+@bot.tree.command(name="week", description="This week's deadlines, with buttons to flip weeks")
+async def week(interaction: discord.Interaction) -> None:
+    """Stretch: buttons. The feed is fetched once here; the buttons in week.py redraw from it."""
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("Not your bot — build your own! 🙂", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    try:
+        items = parse_feed(await fetch_feed(CANVAS_FEED_URL))
+    except Exception as e:
+        log.exception("Canvas fetch failed")
+        return await interaction.followup.send(f"Couldn't read your Canvas feed ({type(e).__name__}). Check the terminal.", ephemeral=True)
+    view = WeekView(items, OWNER_ID)
+    view.message = await interaction.followup.send(view.render(), view=view, ephemeral=True, wait=True)
 
 
 @bot.tree.command(name="digest", description="Send me the morning digest right now")
