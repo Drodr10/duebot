@@ -84,6 +84,19 @@ def upcoming(items: list[Deadline], days: int = 7, now: datetime | None = None, 
     return sorted((d for d in items if now <= d.due <= horizon and (kind is None or d.kind == kind)), key=lambda d: d.due)
 
 
+LIMIT = 1900  # Discord rejects messages over 2000 characters; leave room for the bot's heading
+
+
+def clip(text: str, limit: int = LIMIT) -> str:
+    """A busy month of deadlines can pass Discord's limit. Cut at a line break instead of failing."""
+    if len(text) <= limit:
+        return text
+    kept = text[: limit - 12].rsplit("\n", 1)[0].rstrip()
+    if kept.endswith("**"):                       # don't leave a day heading with nothing under it
+        kept = kept.rsplit("\n", 1)[0].rstrip()
+    return kept + "\n…and more"
+
+
 def format_digest(items: list[Deadline], days: int = 7, now: datetime | None = None) -> str:
     """Markdown for Discord: grouped by day, one line per deadline."""
     now = now or datetime.now(TZ)
@@ -102,7 +115,7 @@ def format_digest(items: list[Deadline], days: int = 7, now: datetime | None = N
         course = f"`{d.course}` " if d.course else ""
         title = f"[{d.title}]({d.url})" if d.url else d.title
         lines.append(f"• {when} — {course}{title}")
-    return "\n".join(lines).strip()
+    return clip("\n".join(lines).strip())
 
 
 async def get_digest(url: str, days: int = 7) -> str:
