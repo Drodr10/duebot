@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-from canvas import TZ, parse_feed, upcoming, format_digest
+from canvas import LIMIT, TZ, clip, format_digest, parse_feed, upcoming
 
 NOW = datetime(2026, 10, 28, 9, 0, tzinfo=TZ)
 DATA = (Path(__file__).parent / "sample.ics").read_bytes()
@@ -60,3 +60,19 @@ class CanvasFeedTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClipTests(unittest.TestCase):
+    """Discord rejects messages over 2000 characters; a busy month of deadlines gets there."""
+
+    def test_short_text_untouched(self):
+        self.assertEqual(clip("hi"), "hi")
+
+    def test_long_text_cut_on_a_line(self):
+        out = clip("\n".join(f"• line {i}" for i in range(500)))
+        self.assertLessEqual(len(out), LIMIT)
+        self.assertTrue(out.endswith("…and more"))
+
+    def test_no_empty_day_heading_left_behind(self):
+        text = "\n".join(f"**Day {i}**\n• thing {i}" for i in range(400))
+        self.assertTrue(clip(text).splitlines()[-2].startswith("• "))
