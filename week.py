@@ -10,9 +10,13 @@ The feed is downloaded once, when you run /week. Every click after that only
 redraws from `self.items`, so clicks are instant and never hit the 3-second limit.
 """
 
+import logging
+
 import discord
 
 from canvas import Deadline, format_week
+
+log = logging.getLogger("duebot")
 
 class WeekView(discord.ui.View):
     def __init__(self, items: list[Deadline], owner_id: int) -> None:
@@ -56,5 +60,5 @@ class WeekView(discord.ui.View):
         if self.message:
             try:
                 await self.message.edit(view=self)
-            except discord.HTTPException:
-                pass  # message deleted or too old to edit; nothing to clean up
+            except discord.HTTPException as e:
+                log.warning("Couldn't grey out /week buttons: %s", type(e).__name__)
