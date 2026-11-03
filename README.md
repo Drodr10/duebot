@@ -39,6 +39,8 @@ and `pip install` fails with *No matching distribution found for icalendar*. Ins
 [python.org](https://www.python.org/downloads/) or use a Codespace.
 
 ```bash
+git clone -b start https://github.com/Drodr10/duebot.git   # start = the skeleton we build from
+cd duebot
 python3 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env                                   # fill it in
