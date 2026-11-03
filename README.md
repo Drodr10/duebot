@@ -88,7 +88,7 @@ trial credit (no card) which is enough to see it live tonight, and **Oracle Clou
 **GitHub Student Developer Pack** credits (DigitalOcean, Azure, Heroku) are the real long-term answers.
 Any of them takes the Dockerfile as-is: push the repo, set the four env vars in their dashboard, done.
 
-## 4. Stretch: reminders before each deadline
+## 4. Stretch: reminders, and buttons to flip weeks
 
 Set `REMIND_HOURS=24,1` in `.env` and the bot DMs you 24 hours and again 1 hour before every
 assignment. The logic is in `reminders.py` and is about twenty lines. The interesting part is
@@ -101,6 +101,12 @@ docker run --env-file .env -v duebot-state:/app/state duebot
 
 Without the volume every container restart re-sends every reminder in the window. Try it once
 on purpose; it's the clearest "state needs a home" lesson you'll get.
+
+**`/week` with buttons.** `/week` shows this calendar week, Monday to Sunday, with Previous, This week
+and Next buttons under it. The view lives in `week.py`. A button click is one more event down the
+same Gateway socket, and the bot answers by editing its message in place. The feed is fetched once
+per `/week`, so clicks are instant. Buttons stop working after ten minutes and grey themselves out.
+Only you can click them, the same rule as `/due`.
 
 ## 5. Bonus: the other direction — webhooks
 
